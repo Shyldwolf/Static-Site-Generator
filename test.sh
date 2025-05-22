@@ -1,3 +1,3 @@
 #!/bin/bash
-python3 -m unittest tests.test_htmlnode
+python3 -m unittest -v tests.test_htmlnode
 

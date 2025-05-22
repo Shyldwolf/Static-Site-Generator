@@ -1,5 +1,6 @@
 import unittest
-from src.htmlnode import HTMLNode
+from src.htmlnode import HTMLNode, LeafNode, ParentNode
+from src.textnode import TextNode, TextType
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode(self):
@@ -39,6 +40,51 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(node.props, {"class": "greeting"})
         
         
+    def test_parentnode(self):
+        child1 = HTMLNode("p", "Child 1")
+        child2 = HTMLNode("p", "Child 2")
+        parent = HTMLNode("div", None, [child1, child2], {"class": "parent"})
+        
+        self.assertEqual(parent.tag, "div")
+        self.assertIsNone(parent.value)
+        self.assertEqual(len(parent.children), 2)
+        self.assertEqual(parent.props, {"class": "parent"})
+        
+        # Check if the children are correctly assigned
+        self.assertEqual(parent.children[0].tag, "p")
+        self.assertEqual(parent.children[1].tag, "p")
+        
+    def test_to_html_with_children(self):
+        child_node = LeafNode("span", "child")
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
+
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+        parent_node.to_html(),
+        "<div><span><b>grandchild</b></span></div>",
+    )
+        
+    def test_textnode_to_htmlnode(self):
+    
+        text_node = TextNode("Hello, World!", TextType.TEXT)
+        html_node = ParentNode.textnode_to_htmlnode(text_node)
+        self.assertIsInstance(html_node, LeafNode)
+        self.assertEqual(html_node.value, "Hello, World!")
+        
+        text_node = TextNode("Hello, World!", TextType.BOLD)
+        html_node = ParentNode.textnode_to_htmlnode(text_node)
+        self.assertIsInstance(html_node, LeafNode)
+        self.assertEqual(html_node.tag, "b")
+        
+    def test_text(self):
+        node = TextNode("This is a text node", TextType.TEXT)
+        html_node = ParentNode.textnode_to_htmlnode(node)
+        self.assertEqual(html_node.tag, None)
+        self.assertEqual(html_node.value, "This is a text node")
         
         
 if __name__ == "__main__":
