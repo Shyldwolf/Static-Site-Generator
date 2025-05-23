@@ -1,6 +1,8 @@
 import unittest
 from src.htmlnode import HTMLNode, LeafNode, ParentNode
 from src.textnode import TextNode, TextType
+from src.delimitir import split_nodes_delimiter
+
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode(self):
@@ -85,6 +87,28 @@ class TestHTMLNode(unittest.TestCase):
         html_node = ParentNode.textnode_to_htmlnode(node)
         self.assertEqual(html_node.tag, None)
         self.assertEqual(html_node.value, "This is a text node")
+        
+    def test_code_delimiter_split(self):
+        old_nodes = [
+            TextNode("This is `code` and `more code` here.", TextType.TEXT)
+        ]
+        delimiter = "`"
+        text_type = TextType.CODE
+
+        new_nodes = split_nodes_delimiter(old_nodes, delimiter, text_type)
+
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("code", TextType.CODE),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("more code", TextType.CODE),
+            TextNode(" here.", TextType.TEXT)
+        ]
+
+        self.assertEqual(new_nodes, expected)
+
+        
+        
         
         
 if __name__ == "__main__":
