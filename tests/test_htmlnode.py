@@ -1,8 +1,9 @@
 import unittest
+import re
 from src.htmlnode import HTMLNode, LeafNode, ParentNode
 from src.textnode import TextNode, TextType
-from src.delimitir import split_nodes_delimiter, extract_markdown_images, extract_markdown_links
-
+from src.funcs import markdown_to_blocks, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnode
+from src.blocknode import block_to_block_type, BlockType
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode(self):# Test for HTMLNode initialization
@@ -120,5 +121,98 @@ class TestHTMLNode(unittest.TestCase):
         )
         self.assertListEqual([("link", "https://www.google.com")], matches)
         
+    def test_split_nodes_image(self): # Test for splitting nodes with images
+        old_nodes = [TextNode("This is ![image](https://i.imgur.com/zjjcJKZ.png)", TextType.TEXT)]
+        
+        new_nodes = split_nodes_image(old_nodes)
+
+        expected = [
+            TextNode("This is ", TextType.TEXT),
+            TextNode("image", TextType.TEXT),
+            TextNode("https://i.imgur.com/zjjcJKZ.png", TextType.IMAGE)
+        ]
+
+        self.assertEqual(new_nodes, expected)
+        
+    def test_split_nodes_link(self): # Test for splitting nodes with links
+        old_nodes = [TextNode("This is a [link](https://www.google.com)", TextType.TEXT)]
+        
+        new_nodes = split_nodes_link(old_nodes)
+
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("link", TextType.TEXT),
+            TextNode("https://www.google.com", TextType.LINK)
+        ]
+
+        self.assertEqual(new_nodes, expected)
+        
+    def text_to_textnode(text):
+        
+    # Bold: **text** or __text__
+        if re.fullmatch(r"\*\*(.+?)\*\*", text) or re.fullmatch(r"__(.+?)__", text):
+            clean = re.sub(r"^\*\*|^\_\_|(\*\*$)|(__$)", "", text)
+            return TextNode(clean, TextType.BOLD)
+
+    # Italic: *text* or _text_
+        if re.fullmatch(r"\*(.+?)\*", text) or re.fullmatch(r"_(.+?)_", text):
+            clean = re.sub(r"^\*|^\_|(\*$)|(_$)", "", text)
+            return TextNode(clean, TextType.ITALIC)
+
+    # Code: `text`
+        if re.fullmatch(r"`(.+?)`", text):
+            clean = text[1:-1]
+            return TextNode(clean, TextType.CODE)
+
+        # Plain text
+        return TextNode(text, TextType.TEXT)
+
+    def test_markdown_to_blocks(self):
+        md = """
+        This is **bolded** paragraph
+
+        This is another paragraph with _italic_ text and `code` here
+        This is the same paragraph on a new line
+
+        - This is a list
+        - with items
+        """
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+        
+    class TestBlockToBlockType(unittest.TestCase):
+        def test_heading(self):
+            self.assertEqual(block_to_block_type("# Heading 1"), BlockType.HEADING)
+            self.assertEqual(block_to_block_type("###### Heading 6"), BlockType.HEADING)
+
+        def test_code_block(self):
+            self.assertEqual(block_to_block_type("```\ncode here\n```"), BlockType.CODE)
+
+        def test_quote_block(self):
+            self.assertEqual(block_to_block_type("> This is a quote\n> Another line"), BlockType.QUOTE)
+
+        def test_unordered_list(self):
+            self.assertEqual(block_to_block_type("- item 1\n- item 2"), BlockType.UNORDERED_LIST)
+
+        def test_ordered_list(self):
+            self.assertEqual(block_to_block_type("1. First\n2. Second\n3. Third"), BlockType.ORDERED_LIST)
+
+        def test_paragraph(self):
+            self.assertEqual(block_to_block_type("This is a normal paragraph with no special formatting."), BlockType.PARAGRAPH)
+
+        def test_mixed_list_should_be_paragraph(self):
+            self.assertEqual(block_to_block_type("1. First\n- not ordered"), BlockType.PARAGRAPH)
+
+        def test_unordered_list_with_no_space(self):
+            self.assertEqual(block_to_block_type("-No space"), BlockType.PARAGRAPH)
+            
+            
 if __name__ == "__main__":
     unittest.main()
