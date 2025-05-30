@@ -1,4 +1,6 @@
 from .textnode import TextNode, TextType
+from .htmlnode import ParentNode, HTMLNode
+from .blocknode import BlockType, block_to_block_type
 import re
 import textwrap
 
@@ -113,6 +115,62 @@ def text_to_textnode(text, text_type=TextType.TEXT):
     
     return TextNode(text, text_type) if text else None
 
+
+
 def markdown_to_blocks(markdown):
     blocks = re.split(r'\n\s*\n', markdown.strip())
     return [textwrap.dedent(block).strip() for block in blocks if block.strip()]
+
+
+def text_to_children(text):
+    
+    # Start with a single TextNode
+    nodes = [TextNode(text, TextType.TEXT)]
+    # Split for code
+    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
+    # Split for bold
+    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
+    # Split for italic
+    nodes = split_nodes_delimiter(nodes, "*", TextType.ITALIC)
+    # Split for images
+    nodes = split_nodes_image(nodes)
+    # Split for links
+    nodes = split_nodes_link(nodes)
+    # Remove empty nodes
+    return [node for node in nodes if node.text]
+
+def markdown_to_html_node(markdown: str) -> HTMLNode:
+    blocks = markdown_to_blocks(markdown)
+    children = []
+
+    for block in blocks:
+        block_type = block_to_block_type(block)
+
+        if block_type == BlockType.PARAGRAPH:
+            children.append(HTMLNode("p", children=text_to_children(block)))
+
+        elif block_type == BlockType.HEADING:
+            level = len(re.match(r"(#+)", block).group(1))
+            text = block[level + 1:]  # Skip `#` and space
+            children.append(HTMLNode(f"h{level}", children=text_to_children(text)))
+
+        elif block_type == BlockType.CODE:
+            code_text = "\n".join(block.splitlines()[1:-1])  # Remove ``` lines
+            code_node = HTMLNode("code", children=[ParentNode.textnode_to_htmlnode(TextNode(code_text, TextType.TEXT))])
+            children.append(HTMLNode("pre", children=[code_node]))
+
+        elif block_type == BlockType.QUOTE:
+            quote_text = "\n".join([line[1:].lstrip() for line in block.splitlines()])
+            children.append(HTMLNode("blockquote", children=text_to_children(quote_text)))
+
+        elif block_type == BlockType.UNORDERED_LIST:
+            items = block.splitlines()
+            li_nodes = [HTMLNode("li", children=text_to_children(item[2:])) for item in items]
+            children.append(HTMLNode("ul", children=li_nodes))
+
+        elif block_type == BlockType.ORDERED_LIST:
+            items = block.splitlines()
+            li_nodes = [HTMLNode("li", children=text_to_children(item[item.find('.') + 2:])) for item in items]
+            children.append(HTMLNode("ol", children=li_nodes))
+
+    return HTMLNode("div", children=children)

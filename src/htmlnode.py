@@ -1,4 +1,4 @@
-from .textnode import TextType
+from .textnode import TextType, TextNode
 
 
 
@@ -67,3 +67,6 @@ class ParentNode(HTMLNode):
             return LeafNode(tag="img", props={"src": textnode.url})
         else:
             raise ValueError("Unknown text type")
+    
+    
+    

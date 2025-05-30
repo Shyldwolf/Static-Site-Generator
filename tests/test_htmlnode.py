@@ -2,7 +2,7 @@ import unittest
 import re
 from src.htmlnode import HTMLNode, LeafNode, ParentNode
 from src.textnode import TextNode, TextType
-from src.funcs import markdown_to_blocks, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnode
+from src.funcs import markdown_to_html_node, markdown_to_blocks, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnode
 from src.blocknode import block_to_block_type, BlockType
 
 class TestHTMLNode(unittest.TestCase):
@@ -213,6 +213,27 @@ class TestHTMLNode(unittest.TestCase):
         def test_unordered_list_with_no_space(self):
             self.assertEqual(block_to_block_type("-No space"), BlockType.PARAGRAPH)
             
+            
+
+
+class TestMarkdownToHtmlNode(unittest.TestCase):
+    def test_paragraph_and_heading(self):
+        markdown = "# Heading\n\nThis is a paragraph"
+        node = markdown_to_html_node(markdown)
+        self.assertEqual(node.tag, "div")
+        self.assertEqual(len(node.children), 2)
+        self.assertEqual(node.children[0].tag, "h1")
+        self.assertEqual(node.children[1].tag, "p")
+
+    def test_code_block(self):
+        markdown = "```\ndef hello():\n    return 'Hello'\n```"
+        node = markdown_to_html_node(markdown)
+        self.assertEqual(node.tag, "div")
+        self.assertEqual(node.children[0].tag, "pre")
+        self.assertEqual(node.children[0].children[0].tag, "code")
+
+    # You can continue with more tests for quotes, unordered/ordered lists, etc.
+
             
 if __name__ == "__main__":
     unittest.main()
