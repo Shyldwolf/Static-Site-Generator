@@ -2,24 +2,25 @@ from enum import Enum
 import re
 from typing import List
 
-class BlockType(Enum):
+class BlockType(Enum): # Enum to represent different types of blocks in markdown
     PARAGRAPH = "paragraph"
     HEADING = "heading"
     CODE = "code"
     QUOTE = "quote"
+    BLOCKQUOTE = "blockquote"
     UNORDERED_LIST = "unordered_list"
     ORDERED_LIST = "ordered_list"
 
 
 
-def block_to_block_type(block: str) -> BlockType:
+def block_to_block_type(block: str) -> BlockType: # Function to determine the type of a markdown block
     lines = block.split("\n")
 
     if block.startswith("```") and block.endswith("```"):
         return BlockType.CODE
 
-    if all(line.startswith(">") for line in lines):
-        return BlockType.QUOTE
+    if all(line.strip().startswith(">") for line in lines if line.strip()):
+        return BlockType.BLOCKQUOTE
 
     if all(re.match(r"-\s", line) for line in lines):
         return BlockType.UNORDERED_LIST

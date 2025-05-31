@@ -1,8 +1,5 @@
-from .textnode import TextType, TextNode
 
-
-
-class HTMLNode:
+class HTMLNode: # Base class for HTML nodes, which can be either leaf or parent nodes.
     def __init__(self, tag=None, value=None, children=None, props=None):
         self.tag = tag
         self.value = value
@@ -10,7 +7,7 @@ class HTMLNode:
         self.props = props if props is not None else {}
         
     def to_html(self):
-        raise NotImplementedError("to_html() aún no está implementado")
+        raise NotImplementedError("Subclasses must implement the to_html method")
 
     
     def props_to_html(self):
@@ -20,53 +17,45 @@ class HTMLNode:
         return f"HTMLNode(tag={self.tag}, value={self.value}, children={self.children}, props={self.props})"
         
         
-class LeafNode(HTMLNode):
+class LeafNode(HTMLNode): # Represents a leaf node in the HTML structure, which has a tag and a value.
     def __init__(self, tag=None, value=None, props=None):
         super().__init__(tag=tag, value=value, props=props)
         
     def to_html(self):
+        void_tags = {"img", "br", "hr", "input", "meta", "link"}
+        if self.tag in void_tags:
+            return f"<{self.tag}{self.props_to_html()} />"
         if self.value is None:
             raise ValueError("All leaf nodes must have a value")
-        elif self.tag is None:
+        if self.tag is None:
             return self.value
-        else:
-            return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
         
     def __repr__(self):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"
     
-class ParentNode(HTMLNode):
+class ParentNode(HTMLNode): # Represents a parent node in the HTML structure, which can have children and a tag.
     def __init__(self, tag=None, children=None, props=None):
         super().__init__(tag=tag, children=children, props=props)
         
     def to_html(self):
         if self.tag is None:
             raise ValueError("All parent nodes must have a tag")
-        
         if not self.children:
             raise ValueError("All parent nodes must have children")
+        for child in self.children:
+            if not isinstance(child, HTMLNode):
+                raise TypeError("All children must be instances of HTMLNode")
         children_html = "".join([child.to_html() for child in self.children])
         return f"<{self.tag}{self.props_to_html()}>{children_html}</{self.tag}>"
-        
+
+
     def __repr__(self):
         return f"ParentNode({self.tag}, {self.children}, {self.props})"
         
-   #convert textnode to htmlnode
-    def textnode_to_htmlnode(textnode):
-        if textnode.text_type == TextType.TEXT:
-            return LeafNode(value=textnode.text)
-        elif textnode.text_type == TextType.BOLD:
-            return LeafNode(tag="b", value=textnode.text)
-        elif textnode.text_type == TextType.ITALIC:
-            return LeafNode(tag="i", value=textnode.text)
-        elif textnode.text_type == TextType.CODE:
-            return LeafNode(tag="code", value=textnode.text)
-        elif textnode.text_type == TextType.LINK:
-            return LeafNode(tag="a", value=textnode.text, props={"href": textnode.url})
-        elif textnode.text_type == TextType.IMAGE:
-            return LeafNode(tag="img", props={"src": textnode.url})
-        else:
-            raise ValueError("Unknown text type")
+        
+    
+   
     
     
     

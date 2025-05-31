@@ -4,6 +4,7 @@ from src.htmlnode import HTMLNode, LeafNode, ParentNode
 from src.textnode import TextNode, TextType
 from src.funcs import markdown_to_html_node, markdown_to_blocks, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnode
 from src.blocknode import block_to_block_type, BlockType
+from src.funcs import extract_title
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode(self):# Test for HTMLNode initialization
@@ -167,7 +168,7 @@ class TestHTMLNode(unittest.TestCase):
         # Plain text
         return TextNode(text, TextType.TEXT)
 
-    def test_markdown_to_blocks(self):
+    def test_markdown_to_blocks(self): # Test for converting markdown to blocks
         md = """
         This is **bolded** paragraph
 
@@ -187,7 +188,7 @@ class TestHTMLNode(unittest.TestCase):
             ],
         )
         
-    class TestBlockToBlockType(unittest.TestCase):
+    class TestBlockToBlockType(unittest.TestCase): # Test for converting markdown blocks to block types
         def test_heading(self):
             self.assertEqual(block_to_block_type("# Heading 1"), BlockType.HEADING)
             self.assertEqual(block_to_block_type("###### Heading 6"), BlockType.HEADING)
@@ -214,9 +215,8 @@ class TestHTMLNode(unittest.TestCase):
             self.assertEqual(block_to_block_type("-No space"), BlockType.PARAGRAPH)
             
             
-
-
-class TestMarkdownToHtmlNode(unittest.TestCase):
+            
+class TestMarkdownToHtmlNode(unittest.TestCase): # Test for converting markdown to HTMLNode
     def test_paragraph_and_heading(self):
         markdown = "# Heading\n\nThis is a paragraph"
         node = markdown_to_html_node(markdown)
@@ -232,7 +232,22 @@ class TestMarkdownToHtmlNode(unittest.TestCase):
         self.assertEqual(node.children[0].tag, "pre")
         self.assertEqual(node.children[0].children[0].tag, "code")
 
-    # You can continue with more tests for quotes, unordered/ordered lists, etc.
+    import unittest
+
+
+class TestExtractTitle(unittest.TestCase): # Test for extracting title from markdown
+    def test_extract_valid_title(self):
+        md = "# Hello World"
+        self.assertEqual(extract_title(md), "Hello World")
+
+    def test_strip_spaces(self):
+        md = "   #    Trim this title   "
+        self.assertEqual(extract_title(md), "Trim this title")
+
+    def test_raise_exception(self):
+        md = "## Subtitle only\nSome content"
+        with self.assertRaises(Exception):
+            extract_title(md)
 
             
 if __name__ == "__main__":

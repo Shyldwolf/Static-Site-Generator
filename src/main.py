@@ -1,11 +1,19 @@
-from textnode import TextNode, TextType
+from src.funcs import copiar_static_a_public, generate_page
+import os
+import shutil
 
 def main():
-    # Ejemplo de uso de la clase TextNode
-    text_node1 = TextNode("Hello, World!", TextType.LINK, "https://example.com")
     
+    if os.path.exists("public"):
+        shutil.rmtree("public")
 
-    print(text_node1)  
+  
+    copiar_static_a_public()
+
+   
+    generate_page("content/index.md", "template.html", "public/index.html")
 
 if __name__ == "__main__":
     main()
+
+
