@@ -7,6 +7,10 @@ def main():
     basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
     dest_dir = "docs"
 
+
+    print(basepath)
+    print(dest_dir)
+
     if os.path.exists(dest_dir):
         shutil.rmtree(dest_dir)
 
