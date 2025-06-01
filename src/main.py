@@ -1,4 +1,5 @@
-from src.funcs import copiar_static_a_public, generate_page
+from src.copypaste import copy_static_a_public
+from src.converts import generate_pages_recursive
 import os
 import shutil
 
@@ -7,13 +8,11 @@ def main():
     if os.path.exists("public"):
         shutil.rmtree("public")
 
-  
-    copiar_static_a_public()
+    
+    copy_static_a_public()
 
    
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive("content", "template.html", "public")
 
 if __name__ == "__main__":
     main()
-
-

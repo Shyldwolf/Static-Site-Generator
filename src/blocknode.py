@@ -1,6 +1,6 @@
 from enum import Enum
 import re
-from typing import List
+
 
 class BlockType(Enum): # Enum to represent different types of blocks in markdown
     PARAGRAPH = "paragraph"

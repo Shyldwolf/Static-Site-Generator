@@ -1,10 +1,11 @@
-import unittest
 import re
-from src.htmlnode import HTMLNode, LeafNode, ParentNode
-from src.textnode import TextNode, TextType
-from src.funcs import markdown_to_html_node, markdown_to_blocks, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnode
-from src.blocknode import block_to_block_type, BlockType
-from src.funcs import extract_title
+import unittest
+from src.splits import split_nodes_image, split_nodes_link, split_nodes_delimiter, extract_markdown_images, extract_markdown_links
+from src.nodes import HTMLNode, LeafNode, ParentNode, TextNode, TextType
+from src.converts import markdown_to_blocks, markdown_to_html_node, extract_title
+from src.blocknode import BlockType, block_to_block_type
+
+
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode(self):# Test for HTMLNode initialization
@@ -231,8 +232,6 @@ class TestMarkdownToHtmlNode(unittest.TestCase): # Test for converting markdown 
         self.assertEqual(node.tag, "div")
         self.assertEqual(node.children[0].tag, "pre")
         self.assertEqual(node.children[0].children[0].tag, "code")
-
-    import unittest
 
 
 class TestExtractTitle(unittest.TestCase): # Test for extracting title from markdown
