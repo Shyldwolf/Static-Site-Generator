@@ -28,7 +28,7 @@ def text_to_children(text):
 
     return nodes
 
-def markdown_to_html_node(markdown):
+def markdown_to_html_node(markdown, basepath="/"):
     blocks = markdown_to_blocks(markdown)
     children = []
 
@@ -42,7 +42,7 @@ def markdown_to_html_node(markdown):
             level = len(first_line) - len(first_line.lstrip('#'))
             text = first_line[level:].strip()
             text_nodes = text_to_children(text)
-            child_html_nodes = [textnode_to_htmlnode(tn) for tn in text_nodes]
+            child_html_nodes = [textnode_to_htmlnode(tn, basepath) for tn in text_nodes]
 
             if len(child_html_nodes) == 1 and isinstance(child_html_nodes[0], LeafNode):
                 node = LeafNode(tag=f"h{level}", value=child_html_nodes[0].value, props=child_html_nodes[0].props)
@@ -56,7 +56,7 @@ def markdown_to_html_node(markdown):
             for item in items:
                 text = item[2:].strip()
                 text_nodes = text_to_children(text)
-                li_children = [textnode_to_htmlnode(tn) for tn in text_nodes]
+                li_children = [textnode_to_htmlnode(tn, basepath) for tn in text_nodes]
                 li_nodes.append(ParentNode(tag="li", children=li_children))
             ul_node = ParentNode(tag="ul", children=li_nodes)
             children.append(ul_node)
@@ -67,16 +67,16 @@ def markdown_to_html_node(markdown):
             for item in items:
                 content = item[item.find('.')+1:].strip()
                 text_nodes = text_to_children(content)
-                li_children = [textnode_to_htmlnode(tn) for tn in text_nodes]
+                li_children = [textnode_to_htmlnode(tn, basepath) for tn in text_nodes]
                 li_nodes.append(ParentNode(tag="li", children=li_children))
             ol_node = ParentNode(tag="ol", children=li_nodes)
             children.append(ol_node)
 
         elif block_type == BlockType.BLOCKQUOTE:
             lines = [line[1:].strip() for line in block.splitlines()]
-            text = " ".join(lines).strip()  # Juntamos todas las líneas en un solo texto
+            text = " ".join(lines).strip()
             text_nodes = text_to_children(text)
-            child_html_nodes = [textnode_to_htmlnode(tn) for tn in text_nodes]
+            child_html_nodes = [textnode_to_htmlnode(tn, basepath) for tn in text_nodes]
             blockquote_node = ParentNode(tag="blockquote", children=child_html_nodes)
             children.append(blockquote_node)
 
@@ -88,14 +88,15 @@ def markdown_to_html_node(markdown):
 
         else:
             text_nodes = text_to_children(block)
-            child_html_nodes = [textnode_to_htmlnode(tn) for tn in text_nodes]
+            child_html_nodes = [textnode_to_htmlnode(tn, basepath) for tn in text_nodes]
             p_node = ParentNode(tag="p", children=child_html_nodes)
             children.append(p_node)
 
     return ParentNode(tag="div", children=children)
 
 
-def textnode_to_htmlnode(textnode):
+
+def textnode_to_htmlnode(textnode, basepath="/"):
     if textnode.text_type == TextType.TEXT:
         return LeafNode(value=textnode.text)
     elif textnode.text_type == TextType.BOLD:
@@ -107,10 +108,12 @@ def textnode_to_htmlnode(textnode):
     elif textnode.text_type == TextType.LINK:
         return LeafNode(tag="a", value=textnode.text, props={"href": textnode.url})
     elif textnode.text_type == TextType.IMAGE:
-        return LeafNode(tag="img", props={"src": textnode.url, "alt": textnode.text})
+        return LeafNode(tag="img", props={
+            "src": basepath + textnode.url.lstrip("/"),
+            "alt": textnode.text
+        })
     else:
-        print(f"[ERROR] Unknown text type: {textnode.text_type} (text: {textnode.text})")
-        raise ValueError("Unknown text type")
+        raise ValueError(f"Unknown text type: {textnode.text_type}")
 
 
 def extract_title(markdown: str) -> str: # Extract the first H1 title from the markdown text.
@@ -135,13 +138,16 @@ def generate_page(from_path, template_path, dest_path, basepath="/"):
     with open(template_path, "r") as f:
         template = f.read()
 
-    content_html = markdown_to_html_node(markdown).to_html()
+    content_html = markdown_to_html_node(markdown, basepath).to_html()
+
     title = extract_title(markdown)
 
     html = template.replace("{{ Title }}", title)\
                    .replace("{{ Content }}", content_html)\
                    .replace("{{ BasePath }}", basepath)
-                  
+                   
+              
+              
 
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     with open(dest_path, "w") as f:
