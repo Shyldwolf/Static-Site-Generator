@@ -126,6 +126,9 @@ def remove_title_line(markdown: str) -> str:
 
 
 def generate_page(from_path, template_path, dest_path, basepath="/"):
+    if not basepath.endswith('/'):
+        basepath += '/'
+
     with open(from_path, "r") as f:
         markdown = f.read()
 
