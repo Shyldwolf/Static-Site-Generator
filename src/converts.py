@@ -125,44 +125,38 @@ def remove_title_line(markdown: str) -> str:
     return "\n".join(new_lines)
 
 
-def generate_page(from_path, template_path, dest_path):
-    print(f"Generating page from {from_path} to {dest_path} using {template_path}")
-
+def generate_page(from_path, template_path, dest_path, basepath="/"):
     with open(from_path, "r") as f:
         markdown = f.read()
+
     with open(template_path, "r") as f:
         template = f.read()
 
+    content_html = markdown_to_html_node(markdown).to_html()
     title = extract_title(markdown)
-    markdown_without_title = remove_title_line(markdown)
 
-    html_node = markdown_to_html_node(markdown_without_title)
-    html = html_node.to_html()
-
-    html_with_title = f"<h1>{title}</h1>{html}"
-
-    final_html = template.replace("{{ Title }}", title)
-    final_html = final_html.replace("{{ Content }}", html_with_title)
+    html = template.replace("{{ Title }}", title).replace("{{ Content }}", content_html)
+    html = html.replace('href="/', f'href="{basepath}')
+    html = html.replace('src="/', f'src="{basepath}')
 
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     with open(dest_path, "w") as f:
-        f.write(final_html)
+        f.write(html)
+
         
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath="/"):
     for content in os.listdir(dir_path_content):
         content_path = os.path.join(dir_path_content, content)
-        
         rel_path = os.path.relpath(content_path, start="content")
         dest_path = os.path.join(dest_dir_path, rel_path)
-        
+
         if os.path.isdir(content_path):
-            generate_pages_recursive(content_path, template_path, dest_dir_path)
+            generate_pages_recursive(content_path, template_path, dest_dir_path, basepath)
         elif content.endswith(".md"):
             dest_path = dest_path.replace(".md", ".html")
-            
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-            
-            generate_page(content_path, template_path, dest_path)
+            generate_page(content_path, template_path, dest_path, basepath)
+
 
 
             
