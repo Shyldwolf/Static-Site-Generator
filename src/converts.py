@@ -129,6 +129,8 @@ def remove_title_line(markdown: str) -> str:
 
 
 def generate_page(from_path, template_path, dest_path, basepath="/"):
+    print(f"Generating page from {from_path} to {dest_path} with basepath {basepath}")
+
     if not basepath.endswith('/'):
         basepath += '/'
 
@@ -156,7 +158,12 @@ def generate_page(from_path, template_path, dest_path, basepath="/"):
 
         
 def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath="/"):
+
+    print(f"Generating pages in {dir_path_content} to {dest_dir_path} with basepath {basepath}")
+    print(f"Template path: {template_path}")
+
     for content in os.listdir(dir_path_content):
+        print(f"Processing content: {content}")
         content_path = os.path.join(dir_path_content, content)
         rel_path = os.path.relpath(content_path, start="content")
         dest_path = os.path.join(dest_dir_path, rel_path)
