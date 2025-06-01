@@ -106,10 +106,14 @@ def textnode_to_htmlnode(textnode, basepath="/"):
     elif textnode.text_type == TextType.CODE:
         return LeafNode(tag="code", value=textnode.text)
     elif textnode.text_type == TextType.LINK:
-        return LeafNode(tag="a", value=textnode.text, props={"href": textnode.url})
+        print("Creating link node")
+        print(basepath)
+        print(textnode.url)
+
+        return LeafNode(tag="a", value=textnode.text, props={"href": basepath + textnode.url})
     elif textnode.text_type == TextType.IMAGE:
         return LeafNode(tag="img", props={
-            "src": basepath + textnode.url.lstrip("/"),
+            "src": basepath + textnode.url,
             "alt": textnode.text
         })
     else:
@@ -130,9 +134,6 @@ def remove_title_line(markdown: str) -> str:
 
 def generate_page(from_path, template_path, dest_path, basepath="/"):
     print(f"Generating page from {from_path} to {dest_path} with basepath {basepath}")
-
-    if not basepath.endswith('/'):
-        basepath += '/'
 
     with open(from_path, "r") as f:
         markdown = f.read()
