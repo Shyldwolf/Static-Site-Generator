@@ -106,10 +106,6 @@ def textnode_to_htmlnode(textnode, basepath="/"):
     elif textnode.text_type == TextType.CODE:
         return LeafNode(tag="code", value=textnode.text)
     elif textnode.text_type == TextType.LINK:
-        print("Creating link node")
-        print(basepath)
-        print(textnode.url)
-
         return LeafNode(tag="a", value=textnode.text, props={"href": basepath + textnode.url})
     elif textnode.text_type == TextType.IMAGE:
         return LeafNode(tag="img", props={
